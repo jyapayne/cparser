@@ -25,6 +25,7 @@
 #include "firm/jittest.h"
 #include "parser/parser.h"
 #include "parser/preprocessor.h"
+#include "wrappergen/write_nim.h"
 #include "wrappergen/write_compoundsizes.h"
 #include "wrappergen/write_fluffy.h"
 #include "wrappergen/write_jna.h"
@@ -45,6 +46,7 @@ typedef enum compile_mode_t {
 	MODE_PRINT_FLUFFY,
 	MODE_PRINT_JNA,
 	MODE_PRINT_COMPOUND_SIZE,
+	MODE_PRINT_NIM,
 	MODE_JITTEST,
 } compile_mode_t;
 static compile_mode_t mode = MODE_COMPILE_ASSEMBLE_LINK;
@@ -56,6 +58,15 @@ static bool print_fluffy(compilation_env_t *env, compilation_unit_t *unit)
 	write_fluffy_decls(env->out, unit->ast);
 	return true;
 }
+
+static bool print_nim(compilation_env_t *env, compilation_unit_t *unit)
+{
+	if (!open_output(env))
+		return false;
+	write_nim(env->out, unit->ast);
+	return true;
+}
+
 
 static bool print_jna(compilation_env_t *env, compilation_unit_t *unit)
 {
@@ -185,6 +196,10 @@ static void set_handlers(compile_mode_t mode)
 		set_unit_handler(COMPILATION_UNIT_AST, print_compound_size, true);
 		set_unused_after(MODE_PARSE_ONLY);
 		return;
+	case MODE_PRINT_NIM:
+		set_unit_handler(COMPILATION_UNIT_AST, print_nim, true);
+		set_unused_after(MODE_PARSE_ONLY);
+		return;
 	case MODE_PARSE_ONLY:
 	case MODE_COMPILE_DUMP:
 		set_unit_handler(COMPILATION_UNIT_AST, build_firm_ir, true);
@@ -248,6 +263,8 @@ static bool parse_compile_mode_options(options_state_t *s)
 		mode = MODE_PRINT_AST;
 	} else if (simple_arg("-print-fluffy", s)) {
 		mode = MODE_PRINT_FLUFFY;
+	} else if (simple_arg("-print-nim", s)) {
+		mode = MODE_PRINT_NIM;
 	} else if (simple_arg("-print-compound-sizes", s)) {
 		mode = MODE_PRINT_COMPOUND_SIZE;
 	} else if (simple_arg("-print-jna", s)) {

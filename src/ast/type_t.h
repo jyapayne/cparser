@@ -263,7 +263,6 @@ static inline bool is_type_struct(const type_t *type)
 
 static inline bool is_type_compound(const type_t *type)
 {
-	assert(!is_typeref(type));
 	return type->kind == TYPE_COMPOUND_STRUCT
 		|| type->kind == TYPE_COMPOUND_UNION;
 }
